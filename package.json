@@ -1,0 +1,22 @@
+{
+  "name": "ld37",
+  "version": "0.1.0",
+  "private": true,
+  "devDependencies": {
+    "react-scripts": "0.8.3"
+  },
+  "dependencies": {
+    "human-names": "^1.0.8",
+    "moment": "^2.17.1",
+    "rc-checkbox": "^1.4.3",
+    "react": "^15.4.1",
+    "react-dom": "^15.4.1",
+    "uuid": "^3.0.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  }
+}
