@@ -7,7 +7,6 @@ body {
 }
 table, th, td {
     border: 1px solid #777;
-    margin: 0 auto;
 }
 
 button {
@@ -21,5 +20,38 @@ button {
     font-size: 16px;
 }
 
+.App {
+  display: flex;
+}
+
+.MemberMenu {
+  width: 50%;
+}
+
+.MapView {
+  text-align: center;
+  margin: 0 auto;
+}
+
+.MapView table {
+  margin: 0 auto;
+}
+
 .grow { transition: all .2s ease-in-out; }
 .grow:hover { transform: scale(1.1); }
+
+
+@keyframes pulse {
+  0% {
+    fill: #e19239;
+  }
+  100% {
+    fill: #e06b39;
+  }
+}
+
+.pulsate {
+  animation: pulse 0.8s alternate infinite;
+  animation-timing-function: ease-in-out;
+  animation-delay: 0;
+}

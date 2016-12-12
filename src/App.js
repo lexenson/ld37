@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import './App.css';
 import Map, {Building} from './Map.js';
 import Checkbox from 'rc-checkbox';
 import moment from 'moment';
@@ -50,7 +49,7 @@ class App extends Component {
       money: 500,
       time: 0,
       menu: 'memberList',
-      nBlocksWide: 6,
+      nBlocksWide: 3,
       nBlocksHigh: 4
     }
     this.state.properties.push(this.generateProperty())
@@ -67,10 +66,10 @@ class App extends Component {
     const actions = [
       {
         type: 'steal',
-        duration: 200,
+        duration: 120,
         info: {
-          difficulty: 20,
-          reward: 10
+          difficulty: 40,
+          reward: 100
         }
       }
     ]
@@ -122,7 +121,7 @@ class App extends Component {
     );
 
     const newProperties = this.state.properties.map(p => p.id === property.id ?
-      Object.assign({}, p, {mission: false}): p
+      Object.assign({}, p, {remainingTime: false, mission: false}): p
     );
 
     let change;
@@ -197,6 +196,7 @@ class App extends Component {
     const property = this.state.properties.find(({id}) => id === this.state.currentProperty)
     return (
       <div className="App">
+        <div className="MapView">
         <p>Time: {moment(this.state.time * 60 * 1000).format('HH:mm')}</p>
         <p>Money: ${this.state.money}</p>
         <Map
@@ -207,6 +207,8 @@ class App extends Component {
           padding={30}
           handlePropertyClick={this.handlePropertyClick.bind(this)}
           properties={this.state.properties}
+          members={this.state.members}
+          currentProperty={this.state.currentProperty}
         />
         {
           property ?
@@ -216,9 +218,10 @@ class App extends Component {
             handleAction={this.handleAction.bind(this)}
             handleEndMissionButton={this.handleEndMissionButton.bind(this)}
             handleFailureButton={this.handleFailureButton.bind(this)}
-            startButtonDisabled={false}
+            startButtonDisabled={this.state.members.every(({selected}) => !selected)}
           />: null
         }
+        </div>
         <MemberMenu
           members={this.state.members}
           missions={this.state.missions}
