@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
+import Map, {Building} from './Map.js';
 import Checkbox from 'rc-checkbox';
 import moment from 'moment';
 import uuid from 'uuid/v4';
@@ -174,6 +175,14 @@ class App extends Component {
       <div className="App">
         <p>Time: {moment(this.state.time * 60 * 1000).format('HH:mm')}</p>
         <p>Money: ${this.state.money}</p>
+        <Map
+          width={600}
+          height={500}
+          nBlocksWide={4}
+          nBlocksHigh={6}
+          padding={30}
+          buildings={[{x:0, y:0}, {x:2, y:3}]}
+        />
         <MemberMenu
           members={this.state.members}
           missions={this.state.missions}
