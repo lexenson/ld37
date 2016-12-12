@@ -13,9 +13,6 @@ class App extends Component {
     super(props);
 
     const properties = [
-      this.generateProperty(),
-      this.generateProperty(),
-      this.generateProperty(),
       {
         name: 'Pizza Pasta Salate',
         actions: [{
@@ -24,7 +21,9 @@ class App extends Component {
           duration: 15,
           info: {}
         }],
-        id: uuid()
+        id: uuid(),
+        x: 0,
+        y: 0
       },
       {
         name: 'FU Berlin',
@@ -32,8 +31,11 @@ class App extends Component {
           type: 'learn',
           cost: 50,
           duration: 100,
-          info: {}
-        }]
+          info: {},
+        }],
+        id: uuid(),
+        x: 1,
+        y: 1
       }
     ];
 
@@ -42,12 +44,18 @@ class App extends Component {
     ];
 
     this.state = {
+      currentProperty: false,
       members: members,
       properties: properties,
       money: 500,
       time: 0,
-      menu: 'memberList'
+      menu: 'memberList',
+      nBlocksWide: 6,
+      nBlocksHigh: 4
     }
+    this.state.properties.push(this.generateProperty())
+    this.state.properties.push(this.generateProperty())
+    this.state.properties.push(this.generateProperty())
 
     window.setInterval(() => {
       const newProperties = this.updateProperties(this.state.properties);
@@ -67,6 +75,15 @@ class App extends Component {
       }
     ]
 
+    let exists = true;
+    let pos= {};
+    while(exists) {
+      pos = {
+        x: Math.floor(Math.random() * this.state.nBlocksWide),
+        y: Math.floor(Math.random() * this.state.nBlocksHigh)
+      }
+      exists = this.state.properties.find(({x, y}) => pos.x === x && pos.y === y)
+    }
 
     const type = ['bank', 'store', 'house'][Math.floor(Math.random()*3)];
     const owner = maleRandomIt();
@@ -74,7 +91,9 @@ class App extends Component {
     return {
       name: owner + '\'s ' + type.charAt(0).toUpperCase() + type.slice(1),
       actions,
-      id: uuid()
+      id: uuid(),
+      x: pos.x,
+      y: pos.y
     }
   }
 
@@ -170,7 +189,12 @@ class App extends Component {
     this.setState(Object.assign({}, this.state, {members: newMembers}));
   }
 
+  handlePropertyClick(propertyId) {
+    this.state.currentProperty = propertyId
+  }
+
   render() {
+    const property = this.state.properties.find(({id}) => id === this.state.currentProperty)
     return (
       <div className="App">
         <p>Time: {moment(this.state.time * 60 * 1000).format('HH:mm')}</p>
@@ -178,23 +202,27 @@ class App extends Component {
         <Map
           width={600}
           height={500}
-          nBlocksWide={4}
-          nBlocksHigh={6}
+          nBlocksWide={this.state.nBlocksWide}
+          nBlocksHigh={this.state.nBlocksHigh}
           padding={30}
-          buildings={[{x:0, y:0}, {x:2, y:3}]}
+          handlePropertyClick={this.handlePropertyClick.bind(this)}
+          properties={this.state.properties}
         />
+        {
+          property ?
+          <PropertyInfo
+            property={property}
+            members={this.state.members}
+            handleAction={this.handleAction.bind(this)}
+            handleEndMissionButton={this.handleEndMissionButton.bind(this)}
+            handleFailureButton={this.handleFailureButton.bind(this)}
+            startButtonDisabled={false}
+          />: null
+        }
         <MemberMenu
           members={this.state.members}
           missions={this.state.missions}
           toggleCheckbox={this.toggleCheckbox.bind(this)}/>
-        <MissionMenu
-          properties={this.state.properties}
-          missions={this.state.missions}
-          members={this.state.members}
-          handleAction={this.handleAction.bind(this)}
-          handleEndMissionButton={this.handleEndMissionButton.bind(this)}
-          handleFailureButton={this.handleFailureButton.bind(this)}
-          startButtonDisabled={this.state.members.every(({selected}) => !selected)}/>
       </div>
     );
   }
@@ -250,44 +278,23 @@ const Member = ({name, picture, level, levelUpCost, assignedPropertyId, selected
    </tr>
 );
 
-const MissionMenu = ({properties, members, handleAction, handleEndMissionButton, handleFailureButton, startButtonDisabled}) => (
-  <div className="MissionMenu">
-    <p>
-      Choose a mission
-    </p>
-    <PropertyList
-      properties={properties}
-      members={members}
-      handleAction={handleAction}
-      handleEndMissionButton={handleEndMissionButton}
-      startButtonDisabled={startButtonDisabled}/>
-  </div>
-);
-
-const PropertyList = ({properties, members, handleAction, startButtonDisabled, handleEndMissionButton}) => (
-  <table className="PropertyList">
-    <thead>
-      <tr>
-        <th> Name </th>
-        <th> Address </th>
-        <th>  </th>
-      </tr>
-    </thead>
+const PropertyInfo = ({property, members, handleAction, handleEndMissionButton, handleFailureButton, startButtonDisabled}) => (
+  <table className="PropertyInfo">
     <tbody>
-      {properties.map(property =>
-        property.mission ?
-        <Mission
-          key={'mission-' + property.id}
-          members={members.filter(({assignedPropertyId}) => assignedPropertyId === property.id)}
-          property={property}
-          mission={property.mission}
-          handleEndMissionButton={handleEndMissionButton}
-        />:
+        {property.mission ?
+          <Mission
+            key={'mission-' + property.id}
+            members={members.filter(({assignedPropertyId}) => assignedPropertyId === property.id)}
+            property={property}
+            mission={property.mission}
+            handleEndMissionButton={handleEndMissionButton}
+          />:
         <Property
           key={'property-' + property.id}
           property={property}
           handleAction={handleAction}
-          startButtonDisabled={startButtonDisabled}/>)}
+          startButtonDisabled={startButtonDisabled}/>
+        }
     </tbody>
   </table>
 );

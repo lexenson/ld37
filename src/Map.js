@@ -2,7 +2,7 @@ import React from 'react';
 import {times} from 'lodash';
 
 
-const Map = ({height, width, padding, nBlocksHigh, nBlocksWide, buildings}) => {
+const Map = ({height, width, padding, nBlocksHigh, nBlocksWide, properties, handlePropertyClick}) => {
   const streetColor = "#fedcb3"
   const buildingColor = "#e19239"
   const streetWidth = "6"
@@ -21,8 +21,9 @@ const Map = ({height, width, padding, nBlocksHigh, nBlocksWide, buildings}) => {
           return <line key={'w' + (blockWidth * i)} x1={blockWidth * i + padding} y1="0" x2={blockWidth * i + padding} y2={height} stroke={streetColor} strokeWidth={streetWidth} />
         })
       }
-      {buildings.map(({x,y}) =>
+      {properties.map(({x, y, id}) =>
         <rect
+          onClick={handlePropertyClick.bind(this, id)}
           key={x+'-'+y}
           x={x * blockWidth + padding + 10}
           y={y * blockHeight + padding + 10}
