@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Map, {Building} from './Map.js';
+import Map from './Map.js';
 import Checkbox from 'rc-checkbox';
 import moment from 'moment';
 import uuid from 'uuid/v4';
@@ -48,6 +48,7 @@ class App extends Component {
       properties: properties,
       money: 500,
       time: 0,
+      events: [],
       menu: 'memberList',
       nBlocksWide: 3,
       nBlocksHigh: 4
@@ -142,19 +143,20 @@ class App extends Component {
     const successful =  Math.random()*100 > info.difficulty
     if (successful) {
       collectCashAudio.play();
-      return {money: this.state.money + info.reward}
+      return {money: this.state.money + info.reward, events: [...this.state.events, {text: 'The mission succeded!'}]}
     }
-    return {}
+    return {events: [...this.state.events, {text: 'The mission failed!'}]}
   }
 
   endMissionHire(info, members) {
-    const newMembers = [...members, this.generateMember()];
-    return {members: newMembers};
+    const newMember = this.generateMember()
+    const newMembers = [...members, newMember];
+    return {members: newMembers, events: [...this.state.events, {text: newMember.name + ' has been hired!'}]};
   }
 
   endMissionLearn(info, members, member) {
     const newMembers = members.map(m => member.id === m.id ? Object.assign({}, m, {level: m.level+1}) : m);
-    return {members: newMembers};
+    return {members: newMembers, events: [...this.state.events, {text: member.name + ' gained a level! He\'s now level ' + (member.level + 1) + '.' }]};
   }
 
   handleFailureButton(missionId) {
@@ -189,7 +191,7 @@ class App extends Component {
   }
 
   handlePropertyClick(propertyId) {
-    this.state.currentProperty = propertyId
+    this.setState(Object.assign({}, this.state, {currentProperty: propertyId}));
   }
 
   render() {
@@ -226,6 +228,7 @@ class App extends Component {
           members={this.state.members}
           missions={this.state.missions}
           toggleCheckbox={this.toggleCheckbox.bind(this)}/>
+        <EventLog events={this.state.events} />
       </div>
     );
   }
@@ -331,6 +334,22 @@ const Mission = ({mission, property, members, handleEndMissionButton}) => (
         <p>{moment.duration(property.remainingTime, 'minutes').humanize()}</p>}
     </td>
   </tr>
+);
+
+const EventLog = ({events}) => (
+  <div className="EventLog">
+    {events
+      .slice(Math.max(0, events.length-3),events.length)
+      .reduce((prev, curr) => [curr, ...prev], [])
+      .map(event =>
+        <Event event={event} />)}
+  </div>
+)
+
+const Event = ({event}) => (
+  <div className="Event">
+    {event.text}
+  </div>
 );
 
 export default App;
