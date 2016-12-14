@@ -5,7 +5,7 @@ import {times} from 'lodash';
 const Map = ({currentProperty, height, width, padding, nBlocksHigh, nBlocksWide, members, properties, handlePropertyClick}) => {
   const streetColor = "#fedcb3"
   const buildingColor = "#e19239"
-  const doneColor = "#ee6666"
+  const doneColor = "#af722d"
   const streetWidth = "6"
   const blockHeight = (height - (2 * padding)) / nBlocksHigh
   const blockWidth = (width - (2 * padding)) / nBlocksWide

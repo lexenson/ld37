@@ -45,6 +45,7 @@ class App extends Component {
     this.state = {
       currentProperty: false,
       members: members,
+      selectedMemberId: false,
       properties: properties,
       money: 500,
       time: 0,
@@ -102,7 +103,6 @@ class App extends Component {
         name: maleRandomIt(),
         picture: 'assets/badguys/' + Math.floor(Math.random() * 9 + 1) + '.png',
         level: 1,
-        selected: false,
         levelUpCost: 100,
         id: uuid(),
         assignedPropertyId: false
@@ -168,7 +168,7 @@ class App extends Component {
   handleAction(property, action) {
     if (action.cost > this.state.money) return
     const newMembers = this.state.members.map(member =>
-      member.selected ? Object.assign({}, member, {selected: false, assignedPropertyId: property.id}) : member);
+      member.id === this.state.selectedMemberId ? Object.assign({}, member, {assignedPropertyId: property.id}) : member);
 
     const newProperties = this.state.properties.map(p => p.id === property.id ?
       Object.assign({}, p, {mission: {
@@ -181,13 +181,12 @@ class App extends Component {
 
     const newMoney = this.state.money - (action.cost ? action.cost : 0);
 
-    this.setState(Object.assign({}, this.state, {money: newMoney, members: newMembers, properties: newProperties}));
+    this.setState(Object.assign({}, this.state, {selectedMemberId: false, money: newMoney, members: newMembers, properties: newProperties}));
   }
 
-  toggleCheckbox(id) {
-    const newMembers = this.state.members.map(member =>
-      member.id === id ? Object.assign({}, member, {selected: !member.selected}) : member);
-    this.setState(Object.assign({}, this.state, {members: newMembers}));
+  selectMember(memberId) {
+    if (this.state.members.find(({id}) => id === memberId).assignedPropertyId) return
+    this.setState(Object.assign({}, this.state, {selectedMemberId: memberId}));
   }
 
   handlePropertyClick(propertyId) {
@@ -220,21 +219,22 @@ class App extends Component {
             handleAction={this.handleAction.bind(this)}
             handleEndMissionButton={this.handleEndMissionButton.bind(this)}
             handleFailureButton={this.handleFailureButton.bind(this)}
-            startButtonDisabled={this.state.members.every(({selected}) => !selected)}
+            startButtonDisabled={!this.state.selectedMemberId}
           />: null
         }
+        <EventLog events={this.state.events} />
         </div>
         <MemberMenu
           members={this.state.members}
+          selectedMemberId={this.state.selectedMemberId}
           missions={this.state.missions}
-          toggleCheckbox={this.toggleCheckbox.bind(this)}/>
-        <EventLog events={this.state.events} />
+          selectMember={this.selectMember.bind(this)}/>
       </div>
     );
   }
 }
 
-const MemberMenu = ({members, missions, toggleCheckbox}) => (
+const MemberMenu = ({members, missions, selectMember, selectedMemberId}) => (
   <div className="MemberMenu">
     <p>
       List of gang members
@@ -242,51 +242,43 @@ const MemberMenu = ({members, missions, toggleCheckbox}) => (
     <MemberList
       members={members}
       missions={missions}
-      toggleCheckbox={toggleCheckbox} />
+      selectedMemberId={selectedMemberId}
+      selectMember={selectMember} />
   </div>
 );
 
-const MemberList = ({members, missions, toggleCheckbox}) => (
+const MemberList = ({members, missions, selectMember, selectedMemberId}) => (
   <div className="MemberList">
     <table>
       <thead>
         <tr>
-          <th> Assign </th>
           <th> Picture </th>
           <th> Name </th>
           <th> Level </th>
-          <th> Mission </th>
         </tr>
       </thead>
       <tbody>
         {members.map(member =>
           <Member
             key={member.id}
+            selectedMemberId={selectedMemberId}
             {...member}
-            toggleCheckbox={toggleCheckbox.bind(this, member.id)}/>)}
+            selectMember={selectMember.bind(this, member.id)}/>)}
       </tbody>
     </table>
   </div>
 );
 
-const Member = ({name, picture, level, levelUpCost, assignedPropertyId, selected, mission, toggleCheckbox}) => (
-    <tr className="Member">
-      <td>
-        {assignedPropertyId === false ? <Checkbox checked={selected} onChange={toggleCheckbox} /> : null}
-      </td>
-      <td> <img src={picture}/> </td>
+const Member = ({id, name, picture, level, levelUpCost, assignedPropertyId, mission, selectMember, selectedMemberId}) => (
+    <tr onClick={selectMember} className={(assignedPropertyId ? "disabled " : "") + "Member"}>
+      <td > <img className={selectedMemberId === id ? 'selected' : ''} src={picture}/> </td>
       <td> {name} </td>
       <td> {level} </td>
-      <td>
-      </td>
-      <td>
-      </td>
    </tr>
 );
 
 const PropertyInfo = ({property, members, handleAction, handleEndMissionButton, handleFailureButton, startButtonDisabled}) => (
-  <table className="PropertyInfo">
-    <tbody>
+  <div className="PropertyInfo">
         {property.mission ?
           <Mission
             key={'mission-' + property.id}
@@ -301,15 +293,11 @@ const PropertyInfo = ({property, members, handleAction, handleEndMissionButton, 
           handleAction={handleAction}
           startButtonDisabled={startButtonDisabled}/>
         }
-    </tbody>
-  </table>
+  </div>
 );
 
 const Property = ({property, handleAction, startButtonDisabled}) => (
-  <tr className="Mission grow">
-    <td> {property.name} </td>
-    <td> {property.address} </td>
-    <td>
+  <div className="Mission grow">
       {
         !startButtonDisabled ?
           property.actions.map(action =>
@@ -319,27 +307,23 @@ const Property = ({property, handleAction, startButtonDisabled}) => (
           ):
           null
       }
-    </td>
-  </tr>
+  </div>
 );
 
 
 const Mission = ({mission, property, members, handleEndMissionButton}) => (
-  <tr className="Mission">
-    <td>{property.name}</td>
-    <td>{members.map(({name}) => name).join(", ")}</td>
-    <td>
-      {property.remainingTime === 0 ?
-          <button onClick={handleEndMissionButton.bind(this, mission, property)}>End Mission</button>:
-        <p>{moment.duration(property.remainingTime, 'minutes').humanize()}</p>}
-    </td>
-  </tr>
+  <div className="Mission">
+    {property.remainingTime === 0 ?
+        <button onClick={handleEndMissionButton.bind(this, mission, property)}>End Mission</button>:
+      <p>{moment.duration(property.remainingTime, 'minutes').humanize()}</p>}
+  </div>
 );
 
 const EventLog = ({events}) => (
   <div className="EventLog">
+   <h3>Events</h3>
     {events
-      .slice(Math.max(0, events.length-3),events.length)
+      .slice(-3)
       .reduce((prev, curr) => [curr, ...prev], [])
       .map(event =>
         <Event event={event} />)}

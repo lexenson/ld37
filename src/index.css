@@ -40,18 +40,27 @@ button {
 .grow { transition: all .2s ease-in-out; }
 .grow:hover { transform: scale(1.1); }
 
+.selected {
+  border: 2px solid white;
+}
+
 
 @keyframes pulse {
   0% {
-    fill: #e19239;
+    stroke-width: 2;
   }
   100% {
-    fill: #e06b39;
+    stroke-width: 4;
   }
 }
 
 .pulsate {
-  animation: pulse 0.8s alternate infinite;
+  animation: pulse 0.5s alternate infinite;
   animation-timing-function: ease-in-out;
   animation-delay: 0;
+  stroke: white;
+}
+
+.disabled {
+  filter: grayscale(100%); 
 }
